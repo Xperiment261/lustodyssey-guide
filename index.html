@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lust Odyssey - Walkthrough Guide</title>
+<meta name="description" content="The official Lust Odyssey walkthrough: every phase, choice and consequence, written from the game's code.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+<style>
+:root{
+  --bg:#05070f; --bg2:#0a0f22; --panel:rgba(17,24,48,.72); --panel-solid:#101734;
+  --line:rgba(122,144,255,.16); --text:#d7def5; --muted:#8b96bd;
+  --accent:#6ee7ff; --accent2:#a78bfa; --gain:#34d399; --loss:#f87171;
+  --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  font-size:16px;line-height:1.65;min-height:100vh;overflow-x:hidden;
+}
+#stars{position:fixed;inset:0;z-index:-2;pointer-events:none}
+.nebula{position:fixed;inset:0;z-index:-3;pointer-events:none;
+  background:
+    radial-gradient(900px 600px at 85% -10%, rgba(124,108,255,.16), transparent 60%),
+    radial-gradient(800px 500px at -10% 30%, rgba(60,180,255,.10), transparent 60%),
+    radial-gradient(700px 700px at 60% 110%, rgba(190,80,255,.08), transparent 60%),
+    var(--bg);
+}
+h1,h2,h3,h4,.display{font-family:'Orbitron','Inter',system-ui,sans-serif;letter-spacing:.04em}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;
+  padding:12px 20px;background:rgba(5,7,15,.82);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:10px;font-family:'Orbitron';font-weight:700;
+  font-size:15px;letter-spacing:.14em;color:var(--text);white-space:nowrap}
+.brand:hover{text-decoration:none}
+.brand .ship{width:26px;height:26px;flex:none}
+.brand em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.topnav{display:flex;gap:4px;margin-left:8px}
+.topnav a{padding:7px 12px;border-radius:9px;color:var(--muted);font-size:14px;font-weight:600}
+.topnav a:hover{color:var(--text);background:rgba(122,144,255,.10);text-decoration:none}
+.topnav a.active{color:var(--accent)}
+.topbar .spacer{flex:1}
+.searchbtn{display:flex;align-items:center;gap:8px;border:1px solid var(--line);
+  background:rgba(122,144,255,.06);color:var(--muted);border-radius:9px;padding:7px 12px;
+  font-size:13.5px;cursor:pointer;font-family:inherit}
+.searchbtn:hover{color:var(--text);border-color:rgba(122,144,255,.4)}
+.searchbtn kbd{border:1px solid var(--line);border-radius:5px;padding:0 6px;font-size:11px;
+  font-family:inherit;color:var(--muted)}
+.burger{display:none;border:1px solid var(--line);background:transparent;color:var(--text);
+  border-radius:9px;padding:6px 10px;cursor:pointer;font-size:16px}
+
+/* ---------- layout ---------- */
+.layout{display:flex;max-width:1240px;margin:0 auto;padding:0 20px;gap:36px}
+.sidebar{width:250px;flex:none;padding:34px 0 60px;position:sticky;top:61px;
+  align-self:flex-start;max-height:calc(100vh - 61px);overflow:auto}
+.sidebar h3{font-size:11px;letter-spacing:.22em;color:var(--muted);margin:22px 0 8px;text-transform:uppercase}
+.sidebar h3:first-child{margin-top:0}
+.sidebar a.side-link{display:block;padding:7px 12px;border-left:2px solid var(--line);
+  color:var(--muted);font-size:14.5px;font-weight:500}
+.sidebar a.side-link:hover{color:var(--text);text-decoration:none;border-left-color:var(--accent2)}
+.sidebar a.side-link.active{color:var(--accent);border-left-color:var(--accent);
+  background:linear-gradient(90deg,rgba(110,231,255,.08),transparent)}
+.sidebar .toc a{display:block;padding:4px 12px 4px 22px;border-left:2px solid var(--line);
+  color:var(--muted);font-size:13px}
+.sidebar .toc a:hover{color:var(--text);text-decoration:none}
+.content{flex:1;min-width:0;padding:38px 0 90px}
+
+/* ---------- home ---------- */
+.hero{padding:56px 0 30px;text-align:left}
+.hero .kicker{color:var(--accent);font-family:'Orbitron';font-size:12px;letter-spacing:.3em;text-transform:uppercase}
+.hero h1{font-size:clamp(30px,5vw,52px);font-weight:900;line-height:1.12;margin:14px 0 16px;
+  background:linear-gradient(100deg,#fff 20%,var(--accent) 60%,var(--accent2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--muted);max-width:56ch;font-size:17px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-top:34px}
+.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px;transition:transform .15s ease,border-color .15s ease}
+.card:hover{transform:translateY(-3px);border-color:rgba(110,231,255,.45);text-decoration:none}
+.card .cat{font-size:11px;letter-spacing:.2em;color:var(--accent2);text-transform:uppercase;font-weight:700}
+.card h2{font-size:19px;color:var(--text);margin:10px 0 8px;letter-spacing:.02em}
+.card p{color:var(--muted);font-size:14px}
+.card .go{display:inline-block;margin-top:14px;color:var(--accent);font-size:13.5px;font-weight:600}
+
+/* ---------- article ---------- */
+.crumbs{font-size:13px;color:var(--muted);margin-bottom:18px}
+.crumbs a{color:var(--muted)}
+.crumbs a:hover{color:var(--accent)}
+.article-head h1{font-size:clamp(24px,3.6vw,38px);font-weight:800;line-height:1.2;margin-bottom:12px}
+.article-head .meta{color:var(--muted);font-size:13.5px;margin-bottom:26px;display:flex;gap:16px;flex-wrap:wrap}
+.article-head .meta span{display:inline-flex;align-items:center;gap:6px}
+.guide-body h2{
+  margin:44px 0 6px;padding:14px 18px;border-radius:12px;
+  background:linear-gradient(90deg,rgba(124,108,255,.18),rgba(110,231,255,.05));
+  border:1px solid var(--line);border-left:3px solid var(--accent2);
+  font-size:19px;letter-spacing:.06em;color:#fff;
+}
+.guide-body h4{
+  margin:30px 0 8px;font-size:15.5px;color:var(--accent);letter-spacing:.08em;
+  display:flex;align-items:center;gap:10px;
+}
+.guide-body h4::before{content:"";width:22px;height:1px;background:var(--accent);flex:none;opacity:.6}
+.guide-body p{margin:10px 0;color:var(--text)}
+.guide-body hr{border:none;height:1px;background:var(--line);margin:36px 0 0}
+.guide-body ul{margin:10px 0 10px 4px;list-style:none}
+.guide-body li{padding:4px 0 4px 20px;position:relative}
+.guide-body li::before{content:"▸";position:absolute;left:0;color:var(--accent2)}
+.guide-body b{
+  color:var(--accent);font-weight:600;background:rgba(110,231,255,.08);
+  border:1px solid rgba(110,231,255,.22);border-radius:6px;padding:0 6px;
+  white-space:nowrap;font-size:.94em;
+}
+.guide-body em{color:#ffd9a8;font-style:italic}
+.gain{color:var(--gain);font-weight:700}
+.loss{color:var(--loss);font-weight:700}
+.table-wrap{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:12px}
+.guide-body table{width:100%;border-collapse:collapse;font-size:14.5px;background:rgba(10,15,34,.5)}
+.guide-body th{font-family:'Orbitron';font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent2);text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);
+  background:rgba(124,108,255,.08)}
+.guide-body td{padding:10px 14px;border-bottom:1px solid rgba(122,144,255,.09);vertical-align:top}
+.guide-body tr:last-child td{border-bottom:none}
+.guide-body td b{white-space:normal}
+.article-foot{margin-top:56px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.article-foot a{border:1px solid var(--line);border-radius:12px;padding:14px 18px;background:var(--panel);
+  color:var(--text);font-size:14px;font-weight:600;min-width:180px}
+.article-foot a small{display:block;color:var(--muted);font-weight:400;font-size:12px;margin-top:2px}
+.article-foot a:hover{border-color:rgba(110,231,255,.45);text-decoration:none}
+.article-foot .next{text-align:right;margin-left:auto}
+
+/* ---------- search ---------- */
+.search-overlay{position:fixed;inset:0;z-index:100;background:rgba(3,5,12,.75);backdrop-filter:blur(6px);
+  display:none;align-items:flex-start;justify-content:center;padding:12vh 16px 16px}
+.search-overlay.open{display:flex}
+.search-box{width:100%;max-width:620px;background:var(--panel-solid);border:1px solid rgba(122,144,255,.3);
+  border-radius:16px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.search-box input{width:100%;background:transparent;border:none;outline:none;color:var(--text);
+  font-size:17px;padding:16px 18px;font-family:inherit;border-bottom:1px solid var(--line)}
+.search-results{max-height:52vh;overflow:auto}
+.search-results .sr{display:block;padding:12px 18px;border-bottom:1px solid rgba(122,144,255,.08)}
+.search-results .sr:hover{background:rgba(110,231,255,.06);text-decoration:none}
+.search-results .sr .t{color:var(--accent);font-weight:600;font-size:14.5px}
+.search-results .sr .g{color:var(--accent2);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.search-results .sr .s{color:var(--muted);font-size:13px;margin-top:2px}
+.search-results .sr .s mark{background:rgba(110,231,255,.25);color:#fff;border-radius:3px;padding:0 2px}
+.search-empty{padding:22px 18px;color:var(--muted);font-size:14px}
+.search-hint{padding:10px 18px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+
+/* ---------- footer ---------- */
+.footer{border-top:1px solid var(--line);padding:26px 20px;text-align:center;color:var(--muted);font-size:13px}
+.footer b{color:var(--text)}
+
+/* ---------- mobile ---------- */
+@media (max-width:900px){
+  .sidebar{position:fixed;inset:61px 0 0 0;width:100%;max-height:none;z-index:40;
+    background:rgba(5,7,15,.97);padding:24px 20px;display:none}
+  .sidebar.open{display:block}
+  .burger{display:block}
+  .topnav{display:none}
+  .searchbtn .lbl{display:none}
+  .layout{padding:0 16px}
+  .guide-body b{white-space:normal}
+}
+</style>
+</head>
+<body>
+<div class="nebula"></div>
+<canvas id="stars"></canvas>
+
+<header class="topbar">
+  <button class="burger" id="burger" aria-label="Menu">☰</button>
+  <a class="brand" href="#/">
+    <svg class="ship" viewBox="0 0 24 24" fill="none" stroke="url(#g1)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#6ee7ff"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs>
+      <path d="M12 2c3.5 2.5 5 6.5 5 10l3 4-4-1c-1 2.5-2.3 4.3-4 5-1.7-.7-3-2.5-4-5l-4 1 3-4c0-3.5 1.5-7.5 5-10z"/>
+      <circle cx="12" cy="10" r="2"/>
+    </svg>
+    LUST<em>ODYSSEY</em>
+  </a>
+  <nav class="topnav">
+    <a href="#/" data-nav="home">Home</a>
+    <a href="#/guide/beginnings">Guides</a>
+  </nav>
+  <div class="spacer"></div>
+  <button class="searchbtn" id="searchBtn"><span>🔍</span><span class="lbl">Search the guide</span><kbd>/</kbd></button>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="content" id="content"></main>
+</div>
+
+<footer class="footer">
+  <b>Lust Odyssey Walkthrough Guide</b> · by XperimentLO · Written from the game's code · Guide under construction, more sections coming
+</footer>
+
+<div class="search-overlay" id="searchOverlay">
+  <div class="search-box">
+    <input id="searchInput" type="text" placeholder="Search phases, choices, quests, characters…" autocomplete="off">
+    <div class="search-results" id="searchResults"></div>
+    <div class="search-hint">↵ open result &nbsp;·&nbsp; esc close</div>
+  </div>
+</div>
+
+<template id="article-beginnings" data-slug="beginnings" data-title="Beginnings: Complete Walkthrough Guide" data-desc="From waking up in a ventilation duct to opening the stuck door of the Captain&#x27;s Room."><h2>PREREQUISITE</h2>
+<p>There are no requirements: this is the game's opening sequence and it starts automatically when you begin a new game. The game starts in Normal mode; you can change the difficulty at any time in the options menu.</p>
+<hr>
+<h2>PHASE 1: THE VENTILATION DUCT</h2>
+<h4>STEP 1: WAKE UP</h4>
+<p>You wake up naked in complete darkness, with no memory of who you are, trapped inside a metal ventilation duct. Only the sound of a fan answers your calls.</p>
+<h4>STEP 2: ESCAPE THE DUCT</h4>
+<p>Select <b>Explore</b> to crawl through the duct until you find a grate with a faint light below it.</p>
+<p><b>Punch it</b> and then <b>Insist</b> twice: on the third blow the grate opens and you fall into the Captain's Room. <em>Outcome:</em> <b>-5 Health</b> from the fall.</p>
+<hr>
+<h2>PHASE 2: WHO ARE YOU?</h2>
+<h4>STEP 1: THE MIRROR</h4>
+<p>As the lights turn on, the main character walks to the <b>mirror</b>. They don't recognize the person in front of them: they have lost their memory. This starts the adventure <b>Find Out Who You Are</b>.</p>
+<h4>STEP 2: CUSTOMIZE YOUR CHARACTER</h4>
+<p>The character configuration screen opens. Choose your body, genitalia, eye color, hair style and color, skin tone, body hair, beard and pronouns. These choices shape descriptions and scenes throughout the whole game.</p>
+<hr>
+<h2>PHASE 3: EXPLORE THE CAPTAIN'S ROOM</h2>
+<p>Use the <b>Explore</b> option to inspect the room. You can also climb onto the bed to close the ventilation grate you fell from.</p>
+<h4>STEP 1: FIND THE QUANTRUNK</h4>
+<p>Under the monitor there is a drawer with a blue touch screen: select it. The main character will open it with their fingertips, revealing a <b>quantrunk</b>, a container much bigger on the inside than on the outside. They will take the <b>earpiece</b> and the <b>watch</b> inside and put them on.</p>
+<h4>STEP 2: MEET THE SHIP'S AI</h4>
+<p>The earpiece connects you with the ship's artificial intelligence, whose memory units are damaged. Choose a name for it (default: <b>Chip</b>).</p>
+<h4>STEP 3: ASK CHIP YOUR FIRST QUESTIONS</h4>
+<p><b>Who am I?</b> Chip only recognizes you as <b>Subject261</b>; the rest of the data is corrupted. You can enter a name for your character.</p>
+<p><b>Where are we?</b> Aboard a scientific spacecraft designed to explore and research new life forms. Almost all systems are dead: navigation, cameras and scanners are offline, so Chip recommends a manual check of the ship.</p>
+<p><b>What's this trunk?</b> The quantrunk connects to your watch and lets you store unlimited objects. Oddly, it was locked to the captain's fingerprints... and it opened for you.</p>
+<h4>STEP 4: THE WATCH</h4>
+<p>When you finish the questions, Chip turns on your watch, unlocking the game's interface (the parameters screen). It also links to your brain so you can understand a million languages; from now on you can read the ship's screens and alerts.</p>
+<h4>STEP 5: CHECK THE ROOM</h4>
+<p>Read the <b>alert screens</b>: multiple systems are damaged, the ship has been boarded and the gun tray is empty. Look through the <b>window</b> to see where you are (and keep calm, or freak out). The <b>mirror</b> lets you rename your character or repeat the character configuration at any time. The <b>bathroom</b> lets you shower and clean up, and the <b>bed</b> lets you sleep to pass the time; more bed and TV options unlock as the story progresses.</p>
+<hr>
+<h2>PHASE 4: GET OUT OF THE CAPTAIN'S ROOM</h2>
+<h4>STEP 1: FIX THE DOOR</h4>
+<p>Select <b>Get out</b>. The door is stuck: the main character will pry open the metal panel to its right and, following Chip's instructions, rub two wires together to cause a short circuit. <em>Outcome:</em> <b>-5 Health</b> from the electric shock, but the door opens.</p>
+<h4>STEP 2: EXPLORE THE SHIP</h4>
+<p>You can now leave the Captain's Room and explore the rest of the spacecraft to find out what happened, kickstarting the quest to <b>repair the ship</b>. Once repaired, you will be able to lock and unlock your room's door.</p></template>
+<template id="article-spaceship" data-slug="the-spaceship" data-title="The Spaceship: Complete Walkthrough Guide" data-desc="From the stuck door to landing on Akra Leuka: the ship, the engine puzzle, and meeting Rylan."><h2>PREREQUISITE</h2>
+<p>Complete <em>Beginnings: Complete Walkthrough Guide</em> first: this guide starts the moment the stuck Captain's Room door opens. Playing on Easy difficulty lets you skip the engine puzzle in Phase 4.</p>
+<h2>PHASE 1: FIRST STEPS ON DECK A</h2>
+<h4>STEP 1: LEAVE THE CAPTAIN'S ROOM</h4>
+<p>The main character steps out into Hallway A-0 and notices the door stays open. Chip, the ship's AI, explains they only unlocked it: a full repair would take a professional and spare parts. Choose <b>Ask if anyone is there</b> or <b>Be stealthy</b>; both are flavor only. A new diary page is added and the quest to reach solid ground begins.</p>
+<h4>STEP 2: CHECK THE CREW ROOMS</h4>
+<p>Try the first door on the left, the one with the orange light: <b>Put your finger on it</b> fails the fingerprint scan, and the doorbell gets no answer. Chip explains that private rooms have privacy protocols and that red lights mark rooms sealed for hull damage. The other doors on this deck read CLOSED FOR SAFETY.</p>
+<h2>PHASE 2: SURVEY THE DAMAGE</h2>
+<h4>STEP 1: GO DOWN TO DECKS B AND C</h4>
+<p>The lower decks reveal blood, bullet holes and broken glass. Choose <b>Be confident</b>, <b>Stay calm</b> or <b>Freak out</b>: pure roleplay flavor with no stat effects.</p>
+<h4>STEP 2: SEARCH THE LABORATORY (DECK B)</h4>
+<p>The laboratory has been ransacked and two of its vats still hold twisted test subjects. When Chip compares their shared memory loss, choose carefully:</p>
+<ul>
+<li><b>It's not the same</b> → <span class="loss">-3 Chip Friendship</span></li>
+<li><b>Right</b> → <span class="gain">+3 Chip Friendship</span></li>
+</ul>
+<p>Searching the room for memory units takes one hour and turns up nothing.</p>
+<h4>STEP 3: THE REST OF THE SHIP</h4>
+<ul>
+<li><b>Therapy room (B-0):</b> books and unfamiliar drugs; nothing to take.</li>
+<li><b>Workshop, Infirmary, Armory and Dormitories:</b> closed for safety until the ship lands.</li>
+<li><b>Cells (C-0):</b> ten empty cells.</li>
+<li><b>Cargo Bay (D-0):</b> empty crates, escape pods with only one missing, and looted spacesuit cabins. This is where the main character will leave the ship later.</li>
+<li><b>Core (D-0):</b> sealed by hull damage. Chip explains the core controls every system on the ship.</li>
+</ul>
+<h2>PHASE 3: MEET RYLAN</h2>
+<h4>STEP 1: THE LUNCHROOM AMBUSH</h4>
+<p>Enter the lunchroom on deck C. Someone tackles the main character and pins them against a table (<span class="loss">-5 Health</span>). The attacker is Rylan, the ship's surviving soldier.</p>
+<ul>
+<li><b>Tell him the truth</b> or <b>Demand to be released</b>: flavor only.</li>
+<li><b>Rub your ass against him</b> → <span class="gain">+1 Rylan Desire</span>. With a submissive main character, answer <b>You don't have what it takes</b> to turn the standoff into a heated encounter right on the table → <span class="gain">+3 Rylan Desire</span>, and the main character is left fully healed.</li>
+<li><b>Try to break the hold</b>: fails, flavor only.</li>
+</ul>
+<h4>STEP 2: ANSWER HIS QUESTIONS</h4>
+<p>The main character introduces themselves and Rylan is added to the Diary contacts. Choose <b>Tell him everything</b> or <b>Skip some of the details</b> about how they escaped (flavor only). Rylan shares a protein meal and his Talk menu opens. Exhaust it before moving on: it covers the pirate attack on the ship, unlocks the option to ask him for help with the engine, and is required before takeoff.</p>
+<h2>PHASE 4: THE ENGINE ROOM</h2>
+<h4>STEP 1: DIVERT POWER TO THE MAIN ENGINE</h4>
+<p>Enter the engine room on deck D. Chip explains the fix: the steering engines still hold a 50% charge and power can be rerouted to the main engine by reconnecting the colored cables. Transfer as much power as possible without draining the side engines (keeping each at 10% is enough connecting cables in the wrong order causes a short circuit and undoes some of your work. Select <b>Mess with the cables</b> to play the wiring puzzle. You can leave it half-done and come back later.</p>
+<p>If the result is below optimal, you can retry, ask Rylan for help (after meeting him), continue later, or insist on launching anyway against Chip's advice. On Easy difficulty, <b>Skip the puzzle</b> sets a perfect 80% charge instantly, but the game flags it: you will miss a Respect point after landing.</p>
+<h4>STEP 2: KNOW YOUR ODDS</h4>
+<p>The takeoff success chance depends on the main engine's final charge:</p>
+<table><tbody><tr><th>Main engine charge</th><th>Success chance</th></tr><tr><td>80</td><td>99%</td></tr><tr><td>70</td><td>80%</td></tr><tr><td>60</td><td>50%</td></tr><tr><td>50</td><td>20% (Chip claims 1%)</td></tr><tr><td>Below 50</td><td>1%</td></tr></tbody></table></div>
+<p>A failed jump is a <span class="loss">Game Over</span>: the ship is torn apart mid-jump. Save before launching.</p>
+<h2>PHASE 5: THE FIRST JUMP</h2>
+<h4>STEP 1: PREPARE FOR TAKEOFF</h4>
+<p>Return to the bridge (hallway B-1) once the engine is patched. Chip refuses to launch until the main character has met everyone on board and is dressed for the trip: a full suit (armor and legs) and a helmet are required, and Rylan will send you back if anything is missing.</p>
+<h4>STEP 2: LAUNCH</h4>
+<p>The main character warns the crew over the PA and Rylan takes the co-pilot seat. If he is already interested (Desire 2 or more), he teases them before launch:</p>
+<ul>
+<li><b>The other way around</b> → <span class="gain">+1 Respect</span></li>
+<li><b>No way</b> → no change</li>
+<li><b>We'll see</b> → <span class="loss">-1 Respect</span></li>
+</ul>
+<p>Chip triangulates the ship's position from the stars, but the destination data is corrupted: the crew jumps blind. Press <b>Start</b>, aim the ship, then press <b>Curvature Propulsion</b>.</p>
+<h4>STEP 3: THE MEMORY</h4>
+<p>On a successful jump the main character passes out and relives a buried memory: leaving a dying Earth with their boyfriend before being cryogenized. Rylan wakes them up and fills in the history: Earth fell about 4,000 years ago, the escaped humans built Paradise, forced their own evolution into Meta-Humans, and now rule the galaxy with an iron fist.</p>
+<h2>PHASE 6: LANDING ON AKRA LEUKA</h2>
+<h4>STEP 1: TOUCHDOWN</h4>
+<p>The ship reaches Akra Leuka, an independent city-state that draws its power from the black hole it orbits, and lands roughly on a lower-level parking lot. Two quests begin: <b>Repair the Ship</b> and <b>Hire a Pilot</b>.</p>
+<h4>STEP 2: BECOME THE CAPTAIN</h4>
+<p>Rylan names the main character captain and hands over the Captain's insignia, a cosmetic item. If the main character fixed the engine personally → <span class="gain">+1 Respect</span> (not if the puzzle was skipped on Easy). If Rylan had to fix it → <span class="loss">-1 Respect</span>. Rylan officially joins the crew.</p>
+<h4>STEP 3: LEARN TO FIGHT</h4>
+<p>Before leaving, Rylan insists on a combat tutorial in Hallway A-0: Akra is dangerous and the main character needs to know how to defend themselves. Follow his instructions to learn the basics.</p>
+<h4>STEP 4: STEP OUTSIDE</h4>
+<p>Go to the cargo bay and choose <b>Wait</b> to stay aboard or <b>Let's go</b> to leave. Rylan walks the main character through Akra's lower levels, a vertical megacity of neon signs, grime and open crime, then splits off to hunt for information about the pirates. The main character is free to explore the city from here. (To be continued in the Akra guide.)</p>
+<h2>SUMMARY OF CHOICES AND STAT CHANGES</h2>
+<table><tbody><tr><th>Character</th><th>Choice / Action</th><th>Effect</th></tr><tr><td>Chip</td><td>Laboratory: "It's not the same"</td><td><span class="loss">-3 Chip Friendship</span></td></tr><tr><td>Chip</td><td>Laboratory: "Right"</td><td><span class="gain">+3 Chip Friendship</span></td></tr><tr><td>Rylan</td><td>Lunchroom: tease him while pinned</td><td><span class="gain">+1 Rylan Desire</span></td></tr><tr><td>Rylan</td><td>Lunchroom: push the tease further (submissive MC)</td><td><span class="gain">+3 Rylan Desire</span> and a full heal</td></tr><tr><td>Rylan</td><td>Bridge: "The other way around"</td><td><span class="gain">+1 Respect</span></td></tr><tr><td>Rylan</td><td>Bridge: "We'll see"</td><td><span class="loss">-1 Respect</span></td></tr><tr><td>Rylan</td><td>Fix the engine yourself</td><td><span class="gain">+1 Respect</span></td></tr><tr><td>Rylan</td><td>Let Rylan fix the engine</td><td><span class="loss">-1 Respect</span></td></tr></tbody></table></div></template>
+<script>
+// ---------- starfield ----------
+(function(){
+  const c=document.getElementById('stars'),x=c.getContext('2d');let W,H,stars=[];
+  function size(){W=c.width=innerWidth;H=c.height=innerHeight;
+    stars=Array.from({length:Math.min(220,W*H/9000)},()=>({x:Math.random()*W,y:Math.random()*H,
+      r:Math.random()*1.3+.2,s:Math.random()*.12+.02,tw:Math.random()*6.28}));}
+  size();addEventListener('resize',size);
+  (function tick(){x.clearRect(0,0,W,H);
+    for(const st of stars){st.y+=st.s;st.tw+=.02;if(st.y>H){st.y=0;st.x=Math.random()*W;}
+      x.globalAlpha=.35+.35*Math.sin(st.tw);
+      x.fillStyle='#cfe6ff';x.beginPath();x.arc(st.x,st.y,st.r,0,6.29);x.fill();}
+    x.globalAlpha=1;requestAnimationFrame(tick);})();
+})();
+
+// ---------- data ----------
+const ARTICLES=[...document.querySelectorAll('template[id^="article-"]')].map(t=>({
+  key:t.id.replace('article-',''),slug:t.dataset.slug,title:t.dataset.title,
+  desc:t.dataset.desc,html:t.innerHTML}));
+const ORDER=ARTICLES.map(a=>a.key);
+
+// ---------- helpers ----------
+const $=s=>document.querySelector(s);
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function slugify(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+
+function sectionsOf(a){
+  // split article html into searchable sections by heading
+  const tmp=document.createElement('div');tmp.innerHTML=a.html;
+  const secs=[];let cur=null;
+  tmp.childNodes.forEach(n=>{
+    if(n.nodeType!==1)return;
+    if(/^H[24]$/.test(n.tagName)){
+      cur={tag:n.tagName,title:n.textContent.trim(),text:'',anchor:slugify(n.textContent)};secs.push(cur);
+    }else if(cur){cur.text+=' '+n.textContent.trim();}
+  });
+  return secs;
+}
+const SEARCH_INDEX=[];
+ARTICLES.forEach(a=>sectionsOf(a).forEach(s=>
+  SEARCH_INDEX.push({article:a,anchor:s.anchor,title:s.title,text:(s.title+' '+s.text).toLowerCase()})));
+
+// ---------- rendering ----------
+function renderHome(){
+  document.title='Lust Odyssey - Walkthrough Guide';
+  const cards=ARTICLES.map((a,i)=>`
+    <a class="card" href="#/guide/${a.slug}">
+      <div class="cat">Walkthrough Guide · Part ${i+1}</div>
+      <h2>${esc(a.title)}</h2>
+      <p>${esc(a.desc)}</p>
+      <span class="go">Read the guide →</span>
+    </a>`).join('');
+  return `
+  <div class="hero">
+    <div class="kicker">Official Walkthrough</div>
+    <h1>LUST ODYSSEY<br>WALKTHROUGH GUIDE</h1>
+    <p>Every phase, every step, every choice and its consequences - from the ventilation duct
+    to the far reaches of space. Written from the game's own code, so nothing is left to guesswork.</p>
+  </div>
+  <div class="cards">${cards}</div>
+  <p style="margin-top:34px;color:var(--muted);font-size:14px">More guides are on the way.
+  Use <b style="color:var(--accent)">Search</b> (or press <kbd>/</kbd>) to jump straight to any choice, quest or character.</p>`;
+}
+
+function renderArticle(a){
+  document.title=a.title+' - Lust Odyssey Walkthrough';
+  const tmp=document.createElement('div');tmp.innerHTML=a.html;
+  const toc=[];
+  tmp.querySelectorAll('h2,h4').forEach(h=>{
+    const id=slugify(h.textContent);h.id=(a.key)+'-'+id;
+    if(h.tagName==='H2')toc.push({id:h.id,label:h.textContent.trim()});
+  });
+  const idx=ORDER.indexOf(a.key);
+  const prev=idx>0?ARTICLES[idx-1]:null, next=idx<ORDER.length-1?ARTICLES[idx+1]:null;
+  const phases=toc.length;
+  const nav=`
+    ${prev?`<a class="prev" href="#/guide/${prev.slug}">← Previous<small>${esc(prev.title)}</small></a>`:'<span></span>'}
+    ${next?`<a class="next" href="#/guide/${next.slug}">Next →<small>${esc(next.title)}</small></a>`:''}`;
+  return `
+  <div class="crumbs"><a href="#/">Home</a> &nbsp;/&nbsp; Walkthrough Guide &nbsp;/&nbsp; ${esc(a.title)}</div>
+  <div class="article-head">
+    <h1>${esc(a.title)}</h1>
+    <div class="meta"><span>🚀 Walkthrough Guide</span><span>📑 ${phases} sections</span><span>✍️ XperimentLO</span></div>
+  </div>
+  <div class="guide-body">${tmp.innerHTML}</div>
+  <div class="article-foot">${nav}</div>`;
+}
+
+function renderSidebar(route){
+  const links=ARTICLES.map(a=>
+    `<a class="side-link ${route.article===a.key?'active':''}" href="#/guide/${a.slug}">${esc(a.title)}</a>`).join('');
+  let toc='';
+  if(route.article){
+    const a=ARTICLES.find(x=>x.key===route.article);
+    toc='<h3>On this page</h3><div class="toc">'+sectionsOf(a).filter(s=>s.tag==='H2')
+      .map(s=>`<a href="#/guide/${a.slug}#${a.key}-${s.anchor}">${esc(s.title)}</a>`).join('')+'</div>';
+  }
+  return `<h3>Walkthrough Guide</h3>${links}${toc}`;
+}
+
+// ---------- router ----------
+function route(){
+  const h=location.hash||'#/';
+  const m=h.match(/^#\/guide\/([a-z0-9-]+)(?:#(.+))?$/);
+  const r={home:!m,article:null,anchor:null};
+  if(m){const a=ARTICLES.find(x=>x.slug===m[1]);if(a){r.article=a.key;r.anchor=m[2]||null;}}
+  $('#sidebar').innerHTML=renderSidebar(r);
+  $('#content').innerHTML=r.article?renderArticle(ARTICLES.find(x=>x.key===r.article)):renderHome();
+  $('#sidebar').classList.remove('open');
+  if(r.anchor){const el=document.getElementById(r.anchor);if(el)setTimeout(()=>el.scrollIntoView({behavior:'smooth'}),30);}
+  else scrollTo(0,0);
+}
+addEventListener('hashchange',route);
+
+// ---------- search ----------
+const overlay=$('#searchOverlay'),input=$('#searchInput'),results=$('#searchResults');
+function openSearch(){overlay.classList.add('open');input.value='';runSearch('');input.focus();}
+function closeSearch(){overlay.classList.remove('open');}
+function runSearch(q){
+  q=q.trim().toLowerCase();
+  if(!q){results.innerHTML='<div class="search-empty">Type to search every phase, choice, quest and stat change.</div>';return;}
+  const words=q.split(/\s+/);
+  const hits=SEARCH_INDEX.filter(s=>words.every(w=>s.text.includes(w))).slice(0,12);
+  if(!hits.length){results.innerHTML='<div class="search-empty">No results for “'+esc(q)+'”.</div>';return;}
+  results.innerHTML=hits.map(h=>{
+    const i=h.text.indexOf(words[0]);
+    const raw=h.text.slice(Math.max(0,i-40),i+80);
+    const snip=esc(raw).replace(new RegExp('('+words.map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','ig'),'<mark>$1</mark>');
+    return `<a class="sr" href="#/guide/${h.article.slug}#${h.article.key}-${h.anchor}">
+      <div class="g">${esc(h.article.title)}</div><div class="t">${esc(h.title)}</div>
+      <div class="s">…${snip}…</div></a>`;
+  }).join('');
+}
+input.addEventListener('input',()=>runSearch(input.value));
+overlay.addEventListener('click',e=>{if(e.target===overlay)closeSearch();});
+results.addEventListener('click',e=>{if(e.target.closest('a'))closeSearch();});
+document.addEventListener('keydown',e=>{
+  if(e.key==='/'&&!overlay.classList.contains('open')&&document.activeElement.tagName!=='INPUT'){e.preventDefault();openSearch();}
+  if(e.key==='Escape')closeSearch();
+});
+$('#searchBtn').addEventListener('click',openSearch);
+$('#burger').addEventListener('click',()=>$('#sidebar').classList.toggle('open'));
+
+route();
+</script>
+</body>
+</html>
